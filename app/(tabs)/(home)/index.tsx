@@ -1,4 +1,4 @@
-import { ScrollView, View, Text } from "react-native";
+import { ScrollView, View, Text,TouchableOpacity } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import DashboardHeader from "../../../components/dashboard/DashboardHeader";
 import DashboardCard from "../../../components/dashboard/DashboardCard";
@@ -21,6 +21,7 @@ const router = useRouter()
           title="My Cars"
           subtitle="View my vehicles"
           tag="2 Active"
+          onPress={()=>router.push('/cars')}
         />
         <DashboardCard
           icon={<FontAwesome5 name="plus" size={24} color="#2563eb" />}
@@ -28,12 +29,13 @@ const router = useRouter()
           subtitle="Register new vehicles"
           tag="Quick"
           onPress={()=>router.push('/add-car')}
-        />
+          />
         <DashboardCard
           icon={<FontAwesome5 name="qrcode" size={24} color="#16a34a" />}
           title="Show QR-Code"
           subtitle="Quick access to QR-Code"
           tag="Scan"
+          onPress={()=>router.push('/scan')}
         />
       </View>
 
@@ -42,7 +44,9 @@ const router = useRouter()
         <Text className="text-gray-800 font-semibold text-base">
           Recent Activity Logs
         </Text>
+        <TouchableOpacity onPress={()=>router.push('/profile')}>
         <Text className="text-blue-600 text-sm font-medium">View All</Text>
+        </TouchableOpacity>
       </View>
 
       <View className="mt-3 bg-white rounded-2xl mx-6 py-4">

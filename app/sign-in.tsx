@@ -52,9 +52,9 @@ return (
           onChangeText={setPassword}
           secureTextEntry
         />
-
+<View className="flex-row justify-between mt-6">
         <TouchableOpacity
-          className="mt-3 items-end"
+          className="mt-3 "
           onPress={() => router.push("/forgot-password")}
         >
           <Text className="text-errorRed font-poppins400">
@@ -62,18 +62,20 @@ return (
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className="mt-3 items-start"
+          className="mt-3 "
           onPress={() => router.push("/admin-login")}
         >
           <Text className="text-blue font-poppins400">
             Admin login
           </Text>
         </TouchableOpacity>
+        </View>
 
         <View className="mt-6">
           <PrimaryButton
             title="Login →"
-            onPress={handleLogin}
+            // onPress={handleLogin}
+            onPress={()=> router.push('/(tabs)')}
             loading={loading}
           />
         </View>

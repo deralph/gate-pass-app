@@ -56,7 +56,6 @@ export default function ForgotPassword() {
             loading={loading} />
         </View>
       </View>
-      </View>
     </KeyboardAvoidingView>
   );
 }

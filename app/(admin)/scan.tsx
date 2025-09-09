@@ -1,19 +1,27 @@
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet, Platform } from "react-native";
 import { useEffect, useState } from "react";
-import { Camera } from "expo-camera";
+import { Camera, CameraView } from "expo-camera";
+import { StatusBar } from "expo-status-bar";
 import ScanOverlay from "../../components/scan/ScanOverlay";
 import UserDetailsModal from "../../components/scan/UserDetailsModal";
-import AccessResult from "../../components/scan/AccessResult";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
+import Header from "../../components/Header";
+
+type ScanData = {
+  time: string;
+  raw: string;
+  parsed: { name?: string; vehicle?: string; plate?: string } | null;
+};
 
 export default function ScanBarcode() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [decision, setDecision] = useState<null | "Approved" | "Denied">(null);
+  const [decision, setDecision] = useState<"Approved" | "Denied" | null>(null);
+  const [scanData, setScanData] = useState<ScanData | null>(null);
 
-  const navigation = useNavigation();
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -22,12 +30,42 @@ export default function ScanBarcode() {
     })();
   }, []);
 
-  const handleBarCodeScanned = ({ data }: { data: string }) => {
-    if (!scanned) {
-      setScanned(true);
-      setModalVisible(true);
-      console.log("QR Data:", data);
-    }
+  const extractor = (event: any) => event?.nativeEvent?.data ?? event?.data ?? null;
+
+  const handleBarCodeScanned = (event: any) => {
+    if (scanned) return;
+    const data = extractor(event);
+    if (!data) return;
+
+    setScanned(true);
+    setModalVisible(true);
+
+    const now = new Date();
+    const time = now.toLocaleTimeString();
+
+    let parsed = null;
+    try { parsed = JSON.parse(data); } catch (e) { parsed = null; }
+
+    const payload: ScanData = { time, raw: data, parsed };
+    console.log("📡 QR scanned:", payload);
+    setScanData(payload);
+  };
+
+  const handleApprove = () => {
+    setDecision("Approved");
+    setModalVisible(false);
+    // camera remains visible; overlay will show approved state
+  };
+  const handleReject = () => {
+    setDecision("Denied");
+    setModalVisible(false);
+  };
+
+  const resetToScan = () => {
+    setDecision(null);
+    setScanData(null);
+    setScanned(false);
+    setModalVisible(false);
   };
 
   if (hasPermission === null) {
@@ -47,60 +85,42 @@ export default function ScanBarcode() {
 
   return (
     <View className="flex-1 bg-green-900">
-      {/* Header */}
-      <View className="flex-row items-center px-6 pt-6 pb-2">
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="#fff"
-          onPress={() => navigation.goBack()}
+      {Platform.OS === "android" ? <StatusBar hidden /> : <StatusBar style="auto" />}
+
+  <Header title="Scan Barcode"  admin/>
+
+      {/* Camera live view (fills remaining) */}
+      <View style={styles.cameraContainer}>
+        <CameraView
+          style={StyleSheet.absoluteFill}
+          facing="back"
+          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
         />
-        <Text className="ml-4 text-lg font-poppins600 text-white">
-          Scan Barcode
-        </Text>
+
+        {/* Overlay sits above camera */}
+        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+          <ScanOverlay data={scanData} decision={decision} onReset={resetToScan} />
+        </View>
       </View>
 
-      {decision ? (
-        <AccessResult
-          status={decision}
-          details={{
-            name: "Ralph Johnson",
-            vehicle: "Lexus RX 350",
-            plate: "DEF-123",
-          }}
-        />
-      ) : (
-        <>
-          {/* Camera Scanner */}
-          <Camera
-            type={Camera?.Constants?.Type?.back}   // ✅ fixed here
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-            className="flex-1"
-            barCodeScannerSettings={{
-              barCodeTypes: ["qr"],
-            }}
-          >
-            <ScanOverlay />
-          </Camera>
-
-          {/* Modal for details */}
-          <UserDetailsModal
-            visible={modalVisible}
-            onClose={() => {
-              setModalVisible(false);
-              setScanned(false);
-            }}
-            onApprove={() => {
-              setDecision("Approved");
-              setModalVisible(false);
-            }}
-            onReject={() => {
-              setDecision("Denied");
-              setModalVisible(false);
-            }}
-          />
-        </>
-      )}
+      {/* Modal with details + Approve/Reject */}
+      <UserDetailsModal
+        visible={modalVisible}
+        data={scanData}
+        onClose={() => {
+          setModalVisible(false);
+          setScanned(false);
+        }}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  cameraContainer: {
+    flex: 1,
+    position: "relative",
+  },
+});

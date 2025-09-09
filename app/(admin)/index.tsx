@@ -50,14 +50,14 @@ export default function AdminDashboard() {
           subtitle="View entry records"
           icon="clipboard"
           color="#10B981"
-          onPress={() => router.push("/(admin)/logs")}
+          onPress={() => router.push("/(admin)/(logs)")}
           />
         <MenuCard
           title="Search"
           subtitle="Find Vehicle Records"
           icon="search"
           color="#10B981"
-          onPress={() => router.push("/(admin)/logs")}
+          onPress={() => router.push("/(admin)/(logs)")}
         />
       </ScrollView>
     </View>

@@ -4,6 +4,7 @@ import SearchBar from "../../../components/admin/SearchBar";
 import LogItem from "../../../components/admin/LogItem";
 import { useNavigation,useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import Header from "../../../components/Header";
 
 const logsData = [
   {
@@ -57,18 +58,8 @@ export default function AccessLogs() {
   return (
     <View className="flex-1 bg-admin pt-6">
       {/* Header */}
-      <View className="flex-row items-center px-6 mt-12 pb-2">
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="#fff"
-          onPress={() => navigation.goBack()}
-        />
-        <Text className="ml-4 text-2xl font-poppins600 text-white">
-          Access Logs
-        </Text>
-      </View>
-
+  <Header title="Access Logs"  admin/>
+ 
       {/* Body */}
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text className="text-white font-poppins600 text-xl">

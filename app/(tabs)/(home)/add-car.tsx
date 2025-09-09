@@ -4,6 +4,7 @@ import Header from "../../../components/Header";
 import InputField from "../../../components/Input";
 import UploadImage from "../../../components/UploadImage";
 import PrimaryButton from "../../../components/Button";
+import * as ImagePicker from "expo-image-picker";
 
 export default function AddCar() {
   const [plate, setPlate] = useState("");
@@ -18,12 +19,22 @@ export default function AddCar() {
    return  Alert.alert("Success", "Car registered successfully!");
   };
 
+  const pickImage = async (setter: (uri: string) => void) => {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      quality: 0.6,
+    });
+    if (!res.canceled) {
+      setter(res.assets[0].uri);
+    }
+  };
+
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white ">
       {/* Header */}
       <Header title="Add Car" subtitle="Register new vehicle" />
 
-           <Text className="text-[#4B5563]  font-bold text-2xl my-4">Car details</Text>
+           <Text className="text-[#4B5563]  font-bold text-2xl m-4 ">Car details</Text>
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <InputField
@@ -47,7 +58,7 @@ export default function AddCar() {
         <View className="mt-6">
           <UploadImage
             uri={carUri}
-            onPick={(uri) => setCarUri(uri)}
+            onPick={() => pickImage(setCarUri)}
             label="Upload car picture"
           />
         </View>

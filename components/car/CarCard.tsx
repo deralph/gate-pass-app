@@ -1,5 +1,6 @@
-import { View, Text, Image } from "react-native";
+import { View, Text, Image,TouchableOpacity } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function CarCard({
   model,
@@ -23,6 +24,11 @@ export default function CarCard({
           <Text className="text-gray-800 text-xl font-bold font-poppins600">{model}</Text>
           <Text className="text-gray-500 text-base font-poppins500">{plate}</Text>
           <Text className="text-gray-500 text-sm font-bold font-poppins400">{color}</Text>
+          <TouchableOpacity onPress={()=>{}} className=" flex-row items-center border-2 border-red-200 p-4 rounded-md mt-6">
+             <Ionicons name="trash-outline" size={18} color="#EF4444" />
+          <Text className="text-red-900 text-base font-bold font-poppins400 ml-6">Remove</Text>
+
+        </TouchableOpacity>
         </View>
       </View>
 

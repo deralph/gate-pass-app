@@ -2,8 +2,10 @@ import { ScrollView, View } from "react-native";
 import Header from "../../components/Header";
 import CarCard from "../../components/car/CarCard";
 import ActionButton from "../../components/car/ActionButton";
+import {useRouter} from 'expo-router'
 
 export default function Cars() {
+  const router = useRouter()
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
@@ -30,25 +32,25 @@ export default function Cars() {
             title="View full barcode"
             icon="qr-code-outline"
             color="#7C3AED"
-            onPress={() => console.log("View full barcode")}
+            onPress={()=>router.push('/scan')}
           />
           <ActionButton
             title="Edit vehicle info"
             icon="pencil-sharp"
             color="#111827"
-            onPress={() => console.log("Edit car")}
-          />
+            onPress={()=>router.push('/(home)/add-car')}
+            />
           <ActionButton
-            title="Remove vehicle"
-            icon="trash-outline"
-            color="#EF4444"
-            onPress={() => console.log("Remove car")}
+            title="Add vehicle"
+            icon="add-circle-outline"
+            color="blue"
+            onPress={()=>router.push('/(home)/add-car')}
           />
           <ActionButton
             title="Regenerate QR-Code"
             icon="refresh-sharp"
             color="#10B981"
-            onPress={() => console.log("Regenerate QR")}
+            onPress={()=>router.push('/scan')}
           />
         </View>
       </ScrollView>
