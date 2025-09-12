@@ -2,22 +2,19 @@ import { View, Text, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function ScanOverlay({
-  // optional scanned payload and decision
   data,
+  userDetails,
+  carDetails,
   decision,
   onReset,
 }: {
-  data?: { time?: string; raw?: string; parsed?: { name?: string; vehicle?: string; plate?: string } | null } | null;
+  data?: any;
+  userDetails?: any;
+  carDetails?: any;
   decision?: "Approved" | "Denied" | null;
   onReset?: () => void;
 }) {
   const isApproved = decision === "Approved";
-
-  // display values (prefer parsed)
-  const name = data?.parsed?.name ?? "Unknown driver";
-  const vehicle = data?.parsed?.vehicle ?? "Unknown vehicle";
-  const plate = data?.parsed?.plate ?? data?.raw ?? "Unknown barcode";
-  const time = data?.time ?? "-";
 
   // Default scanning overlay
   if (!decision) {
@@ -52,8 +49,8 @@ export default function ScanOverlay({
       <View className="mt-4 w-[90%] rounded-xl p-4" style={{ backgroundColor: isApproved ? '#0B3F2F' : '#3F1A1A' }}>
         {isApproved ? (
           <>
-            <Text className="text-white font-poppins600">Driver: {name}</Text>
-            <Text className="text-gray-200 mt-1 text-sm">{vehicle}</Text>
+            <Text className="text-white font-poppins600">Driver: {userDetails?.fullName || 'Unknown'}</Text>
+            <Text className="text-gray-200 mt-1 text-sm">{carDetails?.model || 'Vehicle'} • {carDetails?.plateNumber || 'Plate'}</Text>
           </>
         ) : (
           <>
@@ -63,8 +60,8 @@ export default function ScanOverlay({
         )}
 
         <View className="mt-3 px-3 py-2 rounded-md" style={{ backgroundColor: isApproved ? '#11302A' : '#5A1B1B' }}>
-          <Text className="text-yellow-300 text-sm">Scan time: {time}</Text>
-          <Text className="text-yellow-300 text-sm">Barcode: {plate}</Text>
+          <Text className="text-yellow-300 text-sm">Scan time: {data?.timestamp ? new Date(data.timestamp).toLocaleTimeString() : '-'}</Text>
+          <Text className="text-yellow-300 text-sm">Barcode: {data?.plateNumber || 'Unknown'}</Text>
         </View>
       </View>
 

@@ -1,5 +1,5 @@
 import { ref, uploadString } from 'firebase/storage';
-import { storage } from './firebase';
+import { storage } from '../config/firebase';
 import * as QRCode from 'qrcode';
 
 export const generateQRCodeData = (userId: string, userIdentifier: string, plateNumber: string) => {

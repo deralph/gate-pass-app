@@ -2,6 +2,7 @@ import { View, Text, Image } from "react-native";
 
 type BarcodeCardProps = {
   imageUri?: string;
+  
 };
 
 export default function BarcodeCard({ imageUri }: BarcodeCardProps) {

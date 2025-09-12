@@ -1,5 +1,5 @@
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from './firebase';
+import { storage } from '../config/firebase';
 
 export const uploadToStorage = async (uri: string, path: string) => {
   try {

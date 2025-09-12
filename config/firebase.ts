@@ -1,11 +1,9 @@
+
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-
+import AsyncStorage  from '@react-native-async-storage/async-storage';
 
 
 // Your web app's Firebase configuration
@@ -19,16 +17,26 @@ const firebaseConfig = {
 };
 
 
-const app = initializeApp(firebaseConfig);
-// export const auth = getAuth(app);
 
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Auth with AsyncStorage persistence
 const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+  persistence: getReactNativePersistence(AsyncStorage )
 });
 
+// Initialize other Firebase services
+const db = getFirestore(app);
+const storage = getStorage(app);
 
+// Enable offline persistence for Firestore
+// Note: This should be done after initialization
+import { enableNetwork, disableNetwork } from 'firebase/firestore';
 
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Optional: Enable offline persistence
+// You might want to conditionally enable this based on network status
+// enableNetwork(db);
 
+export { auth, db, storage };
 export default app;

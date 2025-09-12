@@ -1,25 +1,24 @@
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { View, Text, StyleSheet, Platform, Alert } from "react-native";
 import { useEffect, useState } from "react";
 import { Camera, CameraView } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
 import ScanOverlay from "../../components/scan/ScanOverlay";
 import UserDetailsModal from "../../components/scan/UserDetailsModal";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import Header from "../../components/Header";
-
-type ScanData = {
-  time: string;
-  raw: string;
-  parsed: { name?: string; vehicle?: string; plate?: string } | null;
-};
+import { processScan, sendNotification,handleAccessDenied, handleVehicleUsageAlert } from "../../services/scanService";
+import { auth, db } from "../../config/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function ScanBarcode() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [decision, setDecision] = useState<"Approved" | "Denied" | null>(null);
-  const [scanData, setScanData] = useState<ScanData | null>(null);
+  const [scanData, setScanData] = useState<any>(null);
+  const [userDetails, setUserDetails] = useState<any>(null);
+  const [carDetails, setCarDetails] = useState<any>(null);
+  const [processing, setProcessing] = useState(false);
 
   const router = useRouter();
 
@@ -30,40 +29,101 @@ export default function ScanBarcode() {
     })();
   }, []);
 
-  const extractor = (event: any) => event?.nativeEvent?.data ?? event?.data ?? null;
-
-  const handleBarCodeScanned = (event: any) => {
-    if (scanned) return;
-    const data = extractor(event);
-    if (!data) return;
-
+  const handleBarCodeScanned = async ({ data }: { data: string }) => {
+    if (scanned || processing) return;
+    
     setScanned(true);
-    setModalVisible(true);
+    setProcessing(true);
 
-    const now = new Date();
-    const time = now.toLocaleTimeString();
+    try {
+      // Process the scan (this will verify the QR code and get user/car data)
+      const adminId = auth.currentUser?.uid;
+      if (!adminId) {
+        Alert.alert("Error", "Admin not authenticated");
+        return;
+      }
 
-    let parsed = null;
-    try { parsed = JSON.parse(data); } catch (e) { parsed = null; }
-
-    const payload: ScanData = { time, raw: data, parsed };
-    console.log("📡 QR scanned:", payload);
-    setScanData(payload);
+      const result = await processScan(data, adminId);
+      
+      if (result.success) {
+        setScanData(result.scanData);
+        
+        // Get additional user and car details
+        const [userDoc, carDoc] = await Promise.all([
+          getDoc(doc(db, 'users', result.scanData.userId)),
+          getDoc(doc(db, 'cars', `${result.scanData.userId}_${result.scanData.plateNumber}`))
+        ]);
+        
+        if (userDoc.exists()) setUserDetails(userDoc.data());
+        if (carDoc.exists()) setCarDetails(carDoc.data());
+        
+        setModalVisible(true);
+      } else {
+        Alert.alert("Scan Error", result.error);
+        setScanned(false);
+      }
+    } catch (error) {
+      console.error("Scan error:", error);
+      Alert.alert("Error", "Failed to process QR code");
+      setScanned(false);
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     setDecision("Approved");
     setModalVisible(false);
-    // camera remains visible; overlay will show approved state
+    
+    // Send notification to user
+    if (scanData) {
+      await sendNotification(
+        scanData.userId, 
+        'access_approved', 
+        {
+          plateNumber: scanData.plateNumber,
+          timestamp: new Date().toISOString(),
+          adminId: auth.currentUser?.uid
+        }
+      );
+      await handleVehicleUsageAlert(
+      scanData.userId, 
+      scanData.plateNumber, 
+      scanData
+    );
+    }
   };
-  const handleReject = () => {
+
+  const handleReject = async () => {
     setDecision("Denied");
     setModalVisible(false);
+    
+    // Send notification to user
+    if (scanData) {
+      await sendNotification(
+        scanData.userId, 
+        'access_denied', 
+        {
+          plateNumber: scanData.plateNumber,
+          timestamp: new Date().toISOString(),
+          adminId: auth.currentUser?.uid,
+          reason: "Driver mismatch detected"
+        }
+      );
+      await handleAccessDenied(
+      scanData.userId, 
+      scanData.plateNumber, 
+      auth.currentUser?.uid,
+      "Driver mismatch detected"
+    );
+    }
   };
 
   const resetToScan = () => {
     setDecision(null);
     setScanData(null);
+    setUserDetails(null);
+    setCarDetails(null);
     setScanned(false);
     setModalVisible(false);
   };
@@ -87,19 +147,28 @@ export default function ScanBarcode() {
     <View className="flex-1 bg-green-900">
       {Platform.OS === "android" ? <StatusBar hidden /> : <StatusBar style="auto" />}
 
-  <Header title="Scan Barcode"  admin/>
+      <Header title="Scan Barcode" admin />
 
       {/* Camera live view (fills remaining) */}
       <View style={styles.cameraContainer}>
         <CameraView
           style={StyleSheet.absoluteFill}
           facing="back"
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+          barcodeScannerSettings={{
+            barcodeTypes: ["qr", "pdf417"]
+          }}
         />
 
         {/* Overlay sits above camera */}
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-          <ScanOverlay data={scanData} decision={decision} onReset={resetToScan} />
+          <ScanOverlay 
+            data={scanData} 
+            userDetails={userDetails}
+            carDetails={carDetails}
+            decision={decision} 
+            onReset={resetToScan} 
+          />
         </View>
       </View>
 
@@ -107,6 +176,8 @@ export default function ScanBarcode() {
       <UserDetailsModal
         visible={modalVisible}
         data={scanData}
+        userDetails={userDetails}
+        carDetails={carDetails}
         onClose={() => {
           setModalVisible(false);
           setScanned(false);

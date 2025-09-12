@@ -24,6 +24,14 @@
       "favicon": "./assets/images/aaua_logo.png"
     },
     "plugins": [
+       [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow gate pass to access your photos.",
+          "savePhotosPermission": "Allow gatepass to save photos.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",

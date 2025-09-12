@@ -1,4 +1,4 @@
-import { db, auth } from './firebase';
+import { db, auth } from '../config/firebase';
 import { doc, setDoc, collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
 
 export const logActivity = async (userId: string, action: string, details: any = {}) => {

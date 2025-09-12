@@ -3,6 +3,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import '../global.css'
 import { NativeWindStyleSheet } from "nativewind";
+import 'react-native-url-polyfill/auto';
+import 'react-native-get-random-values'; // fixes crypto.getRandomValues() for Hermes
 
 
 

@@ -1,4 +1,4 @@
-import { db, auth } from './firebase';
+import { db, auth } from '../config/firebase';
 import { doc, setDoc, updateDoc, getDoc, arrayUnion, collection, query, where, getDocs } from 'firebase/firestore';
 import { uploadToStorage } from './storageService';
 import { generateQRCodeData, saveQRCode } from './qrCodeService';
