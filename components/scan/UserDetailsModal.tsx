@@ -20,17 +20,17 @@ export default function UserDetailsModal({
   const plate = data?.scanResult?.car?.plateNumber || data?.parsed?.plate || data?.raw || "Unknown barcode";
   const time = data?.time || "-";
   const userId = data?.scanResult?.user?.studentStaffId || "N/A";
-
+console.log("driver data = ", data)
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
-        <View className="bg-white rounded-2xl p-5 w-full">
+        <View className="bg-gray-300 rounded-2xl p-5 w-full">
           <Text className="font-poppins600 text-lg text-gray-800 mb-3">Driver Details</Text>
 
           <View className="flex-row space-x-4 items-center">
             <Image 
               source={{ uri: data?.scanResult?.user?.profilePicture?.url || "https://randomuser.me/api/portraits/men/32.jpg" }} 
-              className="w-16 h-16 rounded-full" 
+              className="w-16 h-16 rounded-full mr-6" 
             />
             <View>
               <Text className="font-poppins600 text-gray-800">{name}</Text>
@@ -42,12 +42,12 @@ export default function UserDetailsModal({
 
           <Image 
             source={{ uri: data?.scanResult?.car?.carPicture?.url || "https://via.placeholder.com/350x120.png?text=Car" }} 
-            className="w-full h-28 rounded-xl mt-4" 
+            className="w-full h-40 rounded-xl mt-4" 
           />
 
           <View className="mt-3 p-3 rounded-md bg-gray-50 border border-gray-200">
             <Text className="text-gray-600 text-sm">Scan time: {time}</Text>
-            <Text className="text-gray-600 text-sm">Barcode: {data?.raw}</Text>
+            {/* <Text className="text-gray-600 text-sm">Barcode: {data?.raw}</Text> */}
             <Text className="text-gray-600 text-sm">
               Status: {data?.scanResult?.isCurrentlyIn ? "Currently Inside" : "Not Inside"}
             </Text>

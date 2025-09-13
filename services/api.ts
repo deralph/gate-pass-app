@@ -5,7 +5,7 @@ import { getToken,removeToken } from '../utils/tokenStorage';
 // npm install --global eas-cli && eas init --id aac28bfa-9fec-43d5-a7d1-3ef7380f63bb
 // https://gate-pass-backend-yz1r.onrender.com
 const API_BASE_URL = "https://gate-pass-backend-yz1r.onrender.com/api";
-// const API_BASE_URL =  'http://192.168.55.193:5000/api';
+// const API_BASE_URL =  'http://192.168.128.193:5000/api';
  
 const api = axios.create({
   baseURL: API_BASE_URL,

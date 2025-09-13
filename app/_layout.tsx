@@ -4,15 +4,17 @@ import { StatusBar } from 'expo-status-bar';
 import '../global.css'
 import { NativeWindStyleSheet } from "nativewind";
 import { AuthProvider } from '../contexts/AuthContext';
-
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function RootLayout() {
   
   return (
     <AuthProvider>
-      <StatusBar style="light" />
+      <SafeAreaProvider>
+      <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
+        <SafeAreaView>
         <Stack.Screen name="index" />
         <Stack.Screen name="sign-up" />
         <Stack.Screen name="sign-in" />
@@ -20,7 +22,9 @@ export default function RootLayout() {
         <Stack.Screen name="forgot-password" />
         <Stack.Screen name="admin-login" />
         <Stack.Screen name="(tabs)" />
+        </SafeAreaView>
       </Stack>
+      </SafeAreaProvider> 
     </AuthProvider>
   );
 }

@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import PrimaryButton from "../components/Button";
 import AuthHeader from "../components/AuthHeader";
-
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EmailSent() {
   const router = useRouter();

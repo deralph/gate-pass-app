@@ -62,7 +62,8 @@ export default function ScanBarcode() {
       console.log("Parsed QR data:", parsedData);
       
       // Process the scan with the server
-      const result = await processScan(data, user?.studentStaffId);
+      // const result = await processScan(parsedData, user?.-_id);
+      const result = await processScan(data,parsedData, parsedData?.USER);
       
       if (result.success) {
         const payload: ScanData = { 
@@ -97,7 +98,7 @@ export default function ScanBarcode() {
     
     setProcessing(true);
     try {
-      const result = await updateScanResult(scanData.scanResult.scan._id, "approved");
+      const result = await updateScanResult(scanData.scanResult.scan._id, "approved",scanData?.scanResult?.isCurrentlyIn);
       
       if (result.success) {
         setDecision("Approved");
@@ -117,7 +118,7 @@ export default function ScanBarcode() {
     
     setProcessing(true);
     try {
-      const result = await updateScanResult(scanData.scanResult.scan._id, "denied", "Driver mismatch detected");
+      const result = await updateScanResult(scanData.scanResult.scan._id, "denied", scanData?.scanResult?.isCurrentlyIn,"Driver mismatch detected");
       
       if (result.success) {
         setDecision("Denied");
