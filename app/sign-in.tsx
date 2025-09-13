@@ -78,14 +78,14 @@ export default function SignIn() {
           />
           
           <View className="flex-row justify-between mt-6">
-            <TouchableOpacity
+            {/* <TouchableOpacity
               className="mt-3 "
               onPress={() => router.push("/forgot-password")}
             >
               <Text className="text-errorRed font-poppins400">
                 Forgot password?
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             <TouchableOpacity
               className="mt-3 "
               onPress={() => router.push("/admin-login")}
@@ -98,7 +98,7 @@ export default function SignIn() {
 
           <View className="mt-6">
             <PrimaryButton
-              title="Login →"
+              title="Login "
               onPress={handleLogin}
               loading={loading}
             />

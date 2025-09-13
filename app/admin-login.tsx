@@ -67,14 +67,14 @@ export default function SignIn() {
             secureTextEntry
           />
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             className="mt-3 items-end"
             onPress={() => router.push("/forgot-password")}
           >
             <Text className="text-errorRed font-poppins400">
               Forgot password?
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <View className="mt-6">
             <PrimaryButton

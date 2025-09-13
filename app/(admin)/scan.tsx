@@ -62,7 +62,7 @@ export default function ScanBarcode() {
       console.log("Parsed QR data:", parsedData);
       
       // Process the scan with the server
-      const result = await processScan(data, user?.id);
+      const result = await processScan(data, user?.studentStaffId);
       
       if (result.success) {
         const payload: ScanData = { 

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "my-app",
-    "slug": "my-app",
+    "name": "gate-pass-app",
+    "slug": "gate-pass-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/aaua_logo.png",
@@ -16,7 +16,11 @@
         "foregroundImage": "./assets/images/aaua_logo.png",
         "backgroundColor": "#2F80ED"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "package": "com.jralph.gatepassapp"
     },
     "web": {
       "bundler": "metro",
@@ -29,15 +33,21 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash1.png",
-          // "imageWidth": 200,
           "resizeMode": "cover",
           "backgroundColor": "#2F80ED"
         }
       ],
-      "expo-barcode-scanner"
     ],
     "experiments": {
-      "typedRoutes": true,"tsconfigPaths": true
-    }
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "aac28bfa-9fec-43d5-a7d1-3ef7380f63bb"
+      }
+    },
+    "owner": "jralph"
   }
 }

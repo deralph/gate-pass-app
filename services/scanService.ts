@@ -1,11 +1,11 @@
 // src/services/scanService.ts
 import api from './api';
 
-export const processScan = async (qrCodeData: string, adminId: string) => {
+export const processScan = async (qrCodeData: string, studentStaffId: string) => {
   try {
     const response = await api.post('/scans/process', {
       qrCodeData,
-      adminId
+      studentStaffId
     });
     return response.data;
   } catch (error: any) {

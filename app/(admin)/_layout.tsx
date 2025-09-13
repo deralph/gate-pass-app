@@ -51,7 +51,7 @@ export default function AdminLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
@@ -59,7 +59,7 @@ export default function AdminLayout() {
             <Ionicons name="person" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
     </Tabs></>
   );
 }
