@@ -1,69 +1,35 @@
-import { db, auth } from './firebase';
-import { doc, setDoc, collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
+// src/services/activityService.ts
+import api from './api';
 
 export const logActivity = async (userId: string, action: string, details: any = {}) => {
   try {
-    const activityId = `${userId}_${Date.now()}`;
-    const activityData = {
-      activityId,
+    const response = await api.post('/activities', {
       userId,
       action,
-      details,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      // You could add more context like IP address, location, etc.
-    };
-    
-    await setDoc(doc(db, 'activities', activityId), activityData);
-    return { success: true };
-  } catch (error) {
-    console.error('Log activity error:', error);
-    return { success: false, error };
+      details
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to log activity:', error);
+    // Don't throw error for activity logging to avoid breaking main functionality
+    return { success: false };
   }
 };
 
-export const getUserActivities = async (userId: string, limit = 50) => {
+export const getUserActivities = async (limit = 50) => {
   try {
-    const activitiesQuery = query(
-      collection(db, 'activities'),
-      where('userId', '==', userId),
-      orderBy('timestamp', 'desc'),
-      limit(limit)
-    );
-    
-    const querySnapshot = await getDocs(activitiesQuery);
-    const activities: any[] = [];
-    
-    querySnapshot.forEach((doc) => {
-      activities.push({ id: doc.id, ...doc.data() });
-    });
-    
-    return { success: true, activities };
+    const response = await api.get(`/activities/my-activities?limit=${limit}`);
+    return response.data;
   } catch (error: any) {
-    console.error('Get user activities error:', error);
-    return { success: false, error: error.message };
+    throw new Error(error.response?.data?.message || 'Failed to fetch user activities');
   }
 };
 
 export const getAdminActivities = async (limit = 100) => {
   try {
-    // Get all activities (admin view)
-    const activitiesQuery = query(
-      collection(db, 'activities'),
-      orderBy('timestamp', 'desc'),
-      limit(limit)
-    );
-    
-    const querySnapshot = await getDocs(activitiesQuery);
-    const activities: any[] = [];
-    
-    querySnapshot.forEach((doc) => {
-      activities.push({ id: doc.id, ...doc.data() });
-    });
-    
-    return { success: true, activities };
+    const response = await api.get(`/activities/admin?limit=${limit}`);
+    return response.data;
   } catch (error: any) {
-    console.error('Get admin activities error:', error);
-    return { success: false, error: error.message };
+    throw new Error(error.response?.data?.message || 'Failed to fetch admin activities');
   }
 };

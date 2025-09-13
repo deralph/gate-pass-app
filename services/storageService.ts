@@ -1,21 +1,29 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from './firebase';
+// src/services/storageService.ts
+import api from './api';
 
 export const uploadToStorage = async (uri: string, path: string) => {
   try {
-    // Convert URI to blob
-    const response = await fetch(uri);
-    const blob = await response.blob();
+    const formData = new FormData();
     
-    // Upload to Firebase Storage
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, blob);
+    const uriParts = uri.split('.');
+    const fileType = uriParts[uriParts.length - 1];
     
-    // Get download URL
-    const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL;
-  } catch (error) {
-    console.error('Upload to storage error:', error);
-    throw error;
+    formData.append('file', {
+      uri: uri,
+      name: `upload.${fileType}`,
+      type: `image/${fileType}`,
+    } as any);
+    
+    formData.append('path', path);
+    
+    const response = await api.post('/storage/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Failed to upload file');
   }
 };

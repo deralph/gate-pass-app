@@ -2,22 +2,21 @@ import { View, Text, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function ScanOverlay({
-  // optional scanned payload and decision
   data,
   decision,
   onReset,
 }: {
-  data?: { time?: string; raw?: string; parsed?: { name?: string; vehicle?: string; plate?: string } | null } | null;
+  data?: any;
   decision?: "Approved" | "Denied" | null;
   onReset?: () => void;
 }) {
   const isApproved = decision === "Approved";
 
-  // display values (prefer parsed)
-  const name = data?.parsed?.name ?? "Unknown driver";
-  const vehicle = data?.parsed?.vehicle ?? "Unknown vehicle";
-  const plate = data?.parsed?.plate ?? data?.raw ?? "Unknown barcode";
-  const time = data?.time ?? "-";
+  // display values (prefer server data over parsed)
+  const name = data?.scanResult?.user?.fullName || data?.parsed?.name || "Unknown driver";
+  const vehicle = data?.scanResult?.car?.model || data?.parsed?.vehicle || "Unknown vehicle";
+  const plate = data?.scanResult?.car?.plateNumber || data?.parsed?.plate || data?.raw || "Unknown barcode";
+  const time = data?.time || "-";
 
   // Default scanning overlay
   if (!decision) {

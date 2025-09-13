@@ -29,12 +29,12 @@ return (
         <Text className="text-[#4B5563] text-center font-base mb-6"> Register and manage your vehicles with ease. Sign in to access AAUA securely anytime </Text>
        
           <PrimaryButton
-            title="Login →"
+            title="Login"
             onPress={()=>router.push('/sign-in')}
             // loading={loading}
           />
           <PrimaryButton
-            title="Create account →"
+            title="Create account"
             onPress={()=>router.push('/sign-up')}
             variant="secondary"
             className="mt-4"/>

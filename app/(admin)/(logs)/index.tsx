@@ -1,64 +1,56 @@
-import { View, Text, ScrollView } from "react-native";
-import { useState } from "react";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { useState, useEffect } from "react";
 import SearchBar from "../../../components/admin/SearchBar";
 import LogItem from "../../../components/admin/LogItem";
-import { useNavigation,useRouter } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { useRouter } from "expo-router";
 import Header from "../../../components/Header";
-
-const logsData = [
-  {
-    name: "Wilson Babafemi",
-    vehicle: "Toyota corolla (ABC-123)",
-    status: "Approved",
-    time: "15:34:17",
-    date: "03 sept 2025",
-  },
-  {
-    name: "Adisat Yetunde",
-    vehicle: "Toyota Camry (DEF-789)",
-    status: "Denied",
-    time: "15:14:20",
-    date: "03 sept 2025",
-  },
-  {
-    name: "Femmy Wills",
-    vehicle: "Hyundai sonata (MNO-321)",
-    status: "Approved",
-    time: "15:04:10",
-    date: "03 sept 2025",
-  },
-  {
-    name: "Aluko Favour",
-    vehicle: "Lexus RX 350 (IJK-567)",
-    status: "Approved",
-    time: "14:58:17",
-    date: "03 sept 2025",
-  },
-  {
-    name: "Aluko Favour",
-    vehicle: "Lexus RX 350 (IJK-567)",
-    status: "Approved",
-    time: "14:58:17",
-    date: "03 sept 2025",
-  },
-];
+import { getScanHistory } from "../../../services/scanService";
 
 export default function AccessLogs() {
   const [search, setSearch] = useState("");
-  const router = useRouter()
-  const navigation = useNavigation();
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  const filteredLogs = logsData.filter(
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+
+  const fetchLogs = async () => {
+    try {
+      const result = await getScanHistory(undefined, 50); // Get 50 most recent logs
+      if (result.success) {
+        setLogs(result.scans);
+      } else {
+        console.error('Failed to fetch logs:', result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredLogs = logs.filter(
     (log) =>
-      log.name.toLowerCase().includes(search.toLowerCase()) ||
-      log.vehicle.toLowerCase().includes(search.toLowerCase())
+      (log.user?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      log.car?.plateNumber?.toLowerCase().includes(search.toLowerCase()) ||
+      log.car?.model?.toLowerCase().includes(search.toLowerCase()))
   );
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-admin justify-center items-center">
+        <ActivityIndicator size="large" color="#34A75E" />
+        <Text className="text-white mt-4">Loading access logs...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-admin pt-6">
       {/* Header */}
-  <Header title="Access Logs"  admin/>
+      <Header title="Access Logs" admin />
  
       {/* Body */}
       <ScrollView contentContainerStyle={{ padding: 16 }}>
@@ -74,29 +66,38 @@ export default function AccessLogs() {
 
         {/* Log List */}
         <View className="mt-5">
-          {filteredLogs.map((log, index) => (
-            <LogItem
-              key={index}
-              name={log.name}
-              vehicle={log.vehicle}
-              status={log.status as "Approved" | "Denied"}
-              time={log.time}
-              date={log.date}
-              onPress={() =>
-  router.push({
-    pathname: "/(admin)/(logs)/view-log",
-    params: {
-      name: log.name,
-      vehicle: log.vehicle,
-      status: log.status,
-      time: log.time,
-      date: log.date,
-    },
-  })
-}
-
-            />
-          ))}
+          {filteredLogs.length > 0 ? (
+            filteredLogs.map((log) => (
+              <LogItem
+                key={log._id}
+                name={log.user?.fullName || "Unknown User"}
+                vehicle={`${log.car?.model || "Unknown"} (${log.car?.plateNumber || "N/A"})`}
+                status={log.result || "Pending"}
+                time={new Date(log.timestamp).toLocaleTimeString()}
+                date={new Date(log.timestamp).toLocaleDateString()}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(admin)/(logs)/view-log",
+                    params: {
+                      scanId: log._id,
+                      name: log.user?.fullName,
+                      vehicle: `${log.car?.model} (${log.car?.plateNumber})`,
+                      status: log.result,
+                      time: new Date(log.timestamp).toLocaleTimeString(),
+                      date: new Date(log.timestamp).toLocaleDateString(),
+                      remarks: log.reason || "No remarks"
+                    },
+                  })
+                }
+              />
+            ))
+          ) : (
+            <View className="py-10 items-center">
+              <Text className="text-gray-400 text-lg">
+                {search ? "No matching logs found" : "No access logs yet"}
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>

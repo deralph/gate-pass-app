@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { View, Text, StyleSheet, Platform, Alert, ActivityIndicator } from "react-native";
 import { useEffect, useState } from "react";
 import { Camera, CameraView } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
@@ -7,11 +7,14 @@ import UserDetailsModal from "../../components/scan/UserDetailsModal";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import Header from "../../components/Header";
+import { processScan, updateScanResult } from "../../services/scanService";
+import { useAuth } from "../../contexts/AuthContext";
 
 type ScanData = {
   time: string;
   raw: string;
   parsed: { name?: string; vehicle?: string; plate?: string } | null;
+  scanResult?: any;
 };
 
 export default function ScanBarcode() {
@@ -20,7 +23,8 @@ export default function ScanBarcode() {
   const [modalVisible, setModalVisible] = useState(false);
   const [decision, setDecision] = useState<"Approved" | "Denied" | null>(null);
   const [scanData, setScanData] = useState<ScanData | null>(null);
-
+  const [processing, setProcessing] = useState(false);
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -32,33 +36,88 @@ export default function ScanBarcode() {
 
   const extractor = (event: any) => event?.nativeEvent?.data ?? event?.data ?? null;
 
-  const handleBarCodeScanned = (event: any) => {
+  const handleBarCodeScanned = async (event: any) => {
     if (scanned) return;
     const data = extractor(event);
-    if (!data) return;
+    if (!data) {
+      console.log("nodata found")
+    };
 
     setScanned(true);
-    setModalVisible(true);
+    setProcessing(true);
 
     const now = new Date();
     const time = now.toLocaleTimeString();
 
-    let parsed = null;
-    try { parsed = JSON.parse(data); } catch (e) { parsed = null; }
-
-    const payload: ScanData = { time, raw: data, parsed };
-    console.log("📡 QR scanned:", payload);
-    setScanData(payload);
+    try {
+      // Process the scan with the server
+      const result = await processScan(data, user?.id);
+      
+      if (result.success) {
+        const payload: ScanData = { 
+          time, 
+          raw: data, 
+          parsed: {
+            name: result.user?.fullName,
+            vehicle: result.car?.model,
+            plate: result.car?.plateNumber
+          },
+          scanResult: result
+        };
+        
+        console.log("📡 QR processed successfully:", payload);
+        setScanData(payload);
+        setModalVisible(true);
+      } else {
+        Alert.alert("Scan Failed", result.error || "Failed to process QR code");
+        setScanned(false);
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to process scan");
+      setScanned(false);
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  const handleApprove = () => {
-    setDecision("Approved");
-    setModalVisible(false);
-    // camera remains visible; overlay will show approved state
+  const handleApprove = async () => {
+    if (!scanData?.scanResult?.scan?._id) return;
+    
+    setProcessing(true);
+    try {
+      const result = await updateScanResult(scanData.scanResult.scan._id, "approved");
+      
+      if (result.success) {
+        setDecision("Approved");
+        setModalVisible(false);
+      } else {
+        Alert.alert("Error", result.message || "Failed to approve scan");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to approve scan");
+    } finally {
+      setProcessing(false);
+    }
   };
-  const handleReject = () => {
-    setDecision("Denied");
-    setModalVisible(false);
+
+  const handleReject = async () => {
+    if (!scanData?.scanResult?.scan?._id) return;
+    
+    setProcessing(true);
+    try {
+      const result = await updateScanResult(scanData.scanResult.scan._id, "denied", "Driver mismatch detected");
+      
+      if (result.success) {
+        setDecision("Denied");
+        setModalVisible(false);
+      } else {
+        Alert.alert("Error", result.message || "Failed to reject scan");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to reject scan");
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const resetToScan = () => {
@@ -87,7 +146,7 @@ export default function ScanBarcode() {
     <View className="flex-1 bg-green-900">
       {Platform.OS === "android" ? <StatusBar hidden /> : <StatusBar style="auto" />}
 
-  <Header title="Scan Barcode"  admin/>
+      <Header title="Scan Barcode" admin/>
 
       {/* Camera live view (fills remaining) */}
       <View style={styles.cameraContainer}>
@@ -99,6 +158,12 @@ export default function ScanBarcode() {
 
         {/* Overlay sits above camera */}
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+          {processing && (
+            <View className="absolute inset-0 bg-black/70 justify-center items-center">
+              <ActivityIndicator size="large" color="#34A75E" />
+              <Text className="text-white mt-4">Processing scan...</Text>
+            </View>
+          )}
           <ScanOverlay data={scanData} decision={decision} onReset={resetToScan} />
         </View>
       </View>
@@ -113,6 +178,7 @@ export default function ScanBarcode() {
         }}
         onApprove={handleApprove}
         onReject={handleReject}
+        processing={processing}
       />
     </View>
   );
