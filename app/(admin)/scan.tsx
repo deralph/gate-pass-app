@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Platform, Alert, ActivityIndicator } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Camera, CameraView } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
 import ScanOverlay from "../../components/scan/ScanOverlay";
@@ -26,6 +26,7 @@ export default function ScanBarcode() {
   const [processing, setProcessing] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
+  const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
     (async () => {
@@ -34,14 +35,9 @@ export default function ScanBarcode() {
     })();
   }, []);
 
-  const extractor = (event: any) => event?.nativeEvent?.data ?? event?.data ?? null;
-
-  const handleBarCodeScanned = async (event: any) => {
+  const handleBarCodeScanned = async ({ data }: { data: string }) => {
     if (scanned) return;
-    const data = extractor(event);
-    if (!data) {
-      console.log("nodata found")
-    };
+    if (!data) return;
 
     setScanned(true);
     setProcessing(true);
@@ -50,6 +46,21 @@ export default function ScanBarcode() {
     const time = now.toLocaleTimeString();
 
     try {
+      console.log("Scanned QR data:", data);
+      
+      // Parse the QR code data based on your format: USER:userId|ID:userIdentifier|CAR:plateNumber|TIMESTAMP:timestamp
+      const parts = data.split('|');
+      const parsedData: any = {};
+      
+      parts.forEach(part => {
+        const [key, value] = part.split(':');
+        if (key && value) {
+          parsedData[key] = value;
+        }
+      });
+      
+      console.log("Parsed QR data:", parsedData);
+      
       // Process the scan with the server
       const result = await processScan(data, user?.id);
       
@@ -65,7 +76,7 @@ export default function ScanBarcode() {
           scanResult: result
         };
         
-        console.log("📡 QR processed successfully:", payload);
+        console.log("QR processed successfully:", payload);
         setScanData(payload);
         setModalVisible(true);
       } else {
@@ -73,6 +84,7 @@ export default function ScanBarcode() {
         setScanned(false);
       }
     } catch (error: any) {
+      console.error("Scan error:", error);
       Alert.alert("Error", error.message || "Failed to process scan");
       setScanned(false);
     } finally {
@@ -151,9 +163,13 @@ export default function ScanBarcode() {
       {/* Camera live view (fills remaining) */}
       <View style={styles.cameraContainer}>
         <CameraView
+          ref={cameraRef}
           style={StyleSheet.absoluteFill}
           facing="back"
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+          barcodeScannerSettings={{
+            barcodeTypes: ["qr", "pdf417"]
+          }}
         />
 
         {/* Overlay sits above camera */}
