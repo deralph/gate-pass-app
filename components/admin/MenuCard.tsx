@@ -10,7 +10,7 @@ export default function MenuCard({
 }: {
   title: string;
   subtitle: string;
-  icon: string;
+  icon: string | any;
   color: string;
   onPress?: () => void;
 }) {
@@ -23,11 +23,13 @@ export default function MenuCard({
         className="w-12 h-12 rounded-lg items-center justify-center mr-4"
         style={{ backgroundColor: color }}
       >
-        <Ionicons name={icon } size={22} color="#fff" />
+        <Ionicons name={icon} size={22} color="#fff" />
       </View>
       <View>
         <Text className="text-white font-poppins600 text-2xl">{title}</Text>
-        <Text className="text-gray-200 font-poppins400 text-xl mt-4">{subtitle}</Text>
+        <Text className="text-gray-200 font-poppins400 text-xl mt-4">
+          {subtitle}
+        </Text>
       </View>
     </TouchableOpacity>
   );

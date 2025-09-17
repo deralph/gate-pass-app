@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, Platform, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { useEffect, useState, useRef } from "react";
 import { Camera, CameraView } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
@@ -8,7 +15,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import Header from "../../components/Header";
 import { processScan, updateScanResult } from "../../services/scanService";
-import { useAuth } from "../../contexts/AuthContext";
+// import { useAuth } from "../../contexts/AuthContext";
 
 type ScanData = {
   time: string;
@@ -24,7 +31,7 @@ export default function ScanBarcode() {
   const [decision, setDecision] = useState<"Approved" | "Denied" | null>(null);
   const [scanData, setScanData] = useState<ScanData | null>(null);
   const [processing, setProcessing] = useState(false);
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const router = useRouter();
   const cameraRef = useRef<CameraView>(null);
 
@@ -47,36 +54,36 @@ export default function ScanBarcode() {
 
     try {
       console.log("Scanned QR data:", data);
-      
+
       // Parse the QR code data based on your format: USER:userId|ID:userIdentifier|CAR:plateNumber|TIMESTAMP:timestamp
-      const parts = data.split('|');
+      const parts = data.split("|");
       const parsedData: any = {};
-      
-      parts.forEach(part => {
-        const [key, value] = part.split(':');
+
+      parts.forEach((part) => {
+        const [key, value] = part.split(":");
         if (key && value) {
           parsedData[key] = value;
         }
       });
-      
+
       console.log("Parsed QR data:", parsedData);
-      
+
       // Process the scan with the server
       // const result = await processScan(parsedData, user?.-_id);
-      const result = await processScan(data,parsedData, parsedData?.USER);
-      
+      const result = await processScan(data, parsedData, parsedData?.USER);
+
       if (result.success) {
-        const payload: ScanData = { 
-          time, 
-          raw: data, 
+        const payload: ScanData = {
+          time,
+          raw: data,
           parsed: {
             name: result.user?.fullName,
             vehicle: result.car?.model,
-            plate: result.car?.plateNumber
+            plate: result.car?.plateNumber,
           },
-          scanResult: result
+          scanResult: result,
         };
-        
+
         console.log("QR processed successfully:", payload);
         setScanData(payload);
         setModalVisible(true);
@@ -94,42 +101,52 @@ export default function ScanBarcode() {
   };
 
   const handleApprove = async () => {
-    if (!scanData?.scanResult?.scan?._id) return;
-    
+    const scanId = scanData?.scanResult?.scan?._id;
+    const isCurrentlyIn = scanData?.scanResult?.scan?.isCurrentlyIn ?? false;
+    if (!scanId) return;
+
     setProcessing(true);
     try {
-      const result = await updateScanResult(scanData.scanResult.scan._id, "approved",scanData?.scanResult?.isCurrentlyIn);
-      
-      if (result.success) {
+      const res = await updateScanResult(scanId, "approved");
+      if (res?.success) {
         setDecision("Approved");
         setModalVisible(false);
       } else {
-        Alert.alert("Error", result.message || "Failed to approve scan");
+        Alert.alert("Error", res?.message || "Failed to approve scan");
       }
-    } catch (error: any) {
-      Alert.alert("Error", error.message || "Failed to approve scan");
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to approve scan");
     } finally {
       setProcessing(false);
+      // allow scanning new codes
+      setScanned(false);
     }
   };
 
+  // Reject handler
   const handleReject = async () => {
-    if (!scanData?.scanResult?.scan?._id) return;
-    
+    const scanId = scanData?.scanResult?.scan?._id;
+    const isCurrentlyIn = scanData?.scanResult?.scan?.isCurrentlyIn ?? false;
+    if (!scanId) return;
+
     setProcessing(true);
     try {
-      const result = await updateScanResult(scanData.scanResult.scan._id, "denied", scanData?.scanResult?.isCurrentlyIn,"Driver mismatch detected");
-      
-      if (result.success) {
+      const res = await updateScanResult(
+        scanId,
+        "denied",
+        "Driver mismatch detected"
+      );
+      if (res?.success) {
         setDecision("Denied");
         setModalVisible(false);
       } else {
-        Alert.alert("Error", result.message || "Failed to reject scan");
+        Alert.alert("Error", res?.message || "Failed to reject scan");
       }
-    } catch (error: any) {
-      Alert.alert("Error", error.message || "Failed to reject scan");
+    } catch (err: any) {
+      Alert.alert("Error", err.message || "Failed to reject scan");
     } finally {
       setProcessing(false);
+      setScanned(false);
     }
   };
 
@@ -157,9 +174,13 @@ export default function ScanBarcode() {
 
   return (
     <View className="flex-1 bg-green-900">
-      {Platform.OS === "android" ? <StatusBar hidden /> : <StatusBar style="auto" />}
+      {Platform.OS === "android" ? (
+        <StatusBar hidden />
+      ) : (
+        <StatusBar style="auto" />
+      )}
 
-      <Header title="Scan Barcode" admin/>
+      <Header title="Scan Barcode" admin />
 
       {/* Camera live view (fills remaining) */}
       <View style={styles.cameraContainer}>
@@ -169,7 +190,7 @@ export default function ScanBarcode() {
           facing="back"
           onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
           barcodeScannerSettings={{
-            barcodeTypes: ["qr", "pdf417"]
+            barcodeTypes: ["qr", "pdf417"],
           }}
         />
 
@@ -181,7 +202,11 @@ export default function ScanBarcode() {
               <Text className="text-white mt-4">Processing scan...</Text>
             </View>
           )}
-          <ScanOverlay data={scanData} decision={decision} onReset={resetToScan} />
+          <ScanOverlay
+            data={scanData}
+            decision={decision}
+            onReset={resetToScan}
+          />
         </View>
       </View>
 

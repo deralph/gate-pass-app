@@ -1,15 +1,21 @@
-import { ScrollView, View, Text, ActivityIndicator, RefreshControl } from "react-native";
+import {
+  ScrollView,
+  View,
+  Text,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import Header from "../../components/Header";
 import CarCard from "../../components/car/CarCard";
 import ActionButton from "../../components/car/ActionButton";
-import { useRouter } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useRouter } from "expo-router";
+import { useState, useEffect } from "react";
 import { getUserCars } from "../../services/userService";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function Cars() {
   const router = useRouter();
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [cars, setCars] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -18,13 +24,13 @@ export default function Cars() {
     try {
       const result = await getUserCars();
       if (result.success) {
-        console.log("result = ", result)
+        console.log("result = ", result);
         setCars(result.cars);
       } else {
-        console.error('Failed to fetch cars:', result.message);
+        console.error("Failed to fetch cars:", result.message);
       }
     } catch (error) {
-      console.error('Error fetching cars:', error);
+      console.error("Error fetching cars:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -54,7 +60,7 @@ export default function Cars() {
       {/* Header */}
       <Header title="My Cars" subtitle="Manage your registered vehicles" />
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -63,11 +69,7 @@ export default function Cars() {
         {/* Car List */}
         {cars.length > 0 ? (
           cars.map((car) => (
-            <CarCard 
-              key={car._id} 
-              car={car} 
-              onCarRemoved={fetchCars}
-            />
+            <CarCard key={car._id} car={car} onCarRemoved={fetchCars} />
           ))
         ) : (
           <View className="py-10 items-center">
@@ -78,7 +80,7 @@ export default function Cars() {
               title="Add your first vehicle"
               icon="add-circle-outline"
               color="blue"
-              onPress={() => router.push('/(home)/add-car')}
+              onPress={() => router.push("/(tabs)/(home)/add-car")}
             />
           </View>
         )}
@@ -90,7 +92,7 @@ export default function Cars() {
               title="View full barcode"
               icon="qr-code-outline"
               color="#7C3AED"
-              onPress={() => router.push('/scan')}
+              onPress={() => router.push("/scan")}
             />
             {/* <ActionButton
               title="Edit vehicle info"
@@ -102,13 +104,13 @@ export default function Cars() {
               title="Add another vehicle"
               icon="add-circle-outline"
               color="blue"
-              onPress={() => router.push('/(home)/add-car')}
+              onPress={() => router.push("/(tabs)/(home)/add-car")}
             />
             <ActionButton
               title="Regenerate QR-Code"
               icon="refresh-sharp"
               color="#10B981"
-              onPress={() => router.push('/scan')}
+              onPress={() => router.push("/scan")}
             />
           </View>
         )}

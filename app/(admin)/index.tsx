@@ -5,15 +5,15 @@ import MenuCard from "../../components/admin/MenuCard";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { getAdminStats } from "../../services/adminService";
-import { useAuth } from "../../contexts/AuthContext";
+// import { useAuth } from "../../contexts/AuthContext";
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [stats, setStats] = useState({
     totalVehicles: 0,
     activeUsers: 0,
-    todaysAccess: 0
+    todaysAccess: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -28,13 +28,13 @@ export default function AdminDashboard() {
         setStats({
           totalVehicles: result.totalVehicles || 0,
           activeUsers: result.activeUsers || 0,
-          todaysAccess: result.todaysAccess || 0
+          todaysAccess: result.todaysAccess || 0,
         });
       } else {
-        console.error('Failed to fetch stats:', result.message);
+        console.error("Failed to fetch stats:", result.message);
       }
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error("Error fetching stats:", error);
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
 
   return (
     <View className="flex-1 bg-admin mt-12">
-      <DashboardHeader admin userName={user?.fullName} />
+      <DashboardHeader admin userName={""} />
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         {/* Stat Cards */}

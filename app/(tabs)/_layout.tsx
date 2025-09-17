@@ -48,7 +48,7 @@ export default function RootLayout() {
           ),
         }}
       />
-      {/* <Tabs.Screen
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
@@ -56,7 +56,7 @@ export default function RootLayout() {
             <FontAwesome5 name="user" size={20} color={color} />
           ),
         }}
-      /> */}
+      />
     </Tabs>
   );
 }

@@ -17,9 +17,7 @@
         "backgroundColor": "#2F80ED"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": [
-        "android.permission.CAMERA"
-      ],
+      "permissions": ["android.permission.CAMERA"],
       "package": "com.jralph.gatepassapp"
     },
     "web": {
@@ -33,12 +31,12 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash1.png",
-          "height":"100%",
-          "width":"100%",
+          "height": "100%",
+          "width": "100%",
           "resizeMode": "cover",
           "backgroundColor": "#2F80ED"
         }
-      ],
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
